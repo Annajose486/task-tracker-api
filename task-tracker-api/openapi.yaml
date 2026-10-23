@@ -1,0 +1,624 @@
+openapi: 3.0.3
+info:
+  title: Task Tracker API
+  description: |
+    RESTful API for a lightweight project and task management tool.
+    Users belong to projects and can be assigned tasks within those projects.
+  version: 1.0.0
+  contact:
+    name: SymphonyAI Media
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+tags:
+  - name: Info
+    description: Application metadata
+  - name: Projects
+    description: Project management
+  - name: Users
+    description: User management
+  - name: Tasks
+    description: Task management
+
+paths:
+  /api/info:
+    get:
+      tags: [Info]
+      summary: Get application info
+      description: Returns the application name and version configured via application.properties
+      operationId: getInfo
+      responses:
+        '200':
+          description: Application info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfoResponse'
+
+  /api/projects:
+    post:
+      tags: [Projects]
+      summary: Create a new project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags: [Projects]
+      summary: List all projects
+      operationId: listProjects
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paginated list of projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPage'
+
+  /api/projects/{id}:
+    get:
+      tags: [Projects]
+      summary: Get project by ID
+      operationId: getProjectById
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: The project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Projects]
+      summary: Update a project
+      operationId: updateProject
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Projects]
+      summary: Delete a project
+      description: Deletes the project and all of its tasks (cascade).
+      operationId: deleteProject
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Project deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/projects/{id}/tasks:
+    get:
+      tags: [Projects]
+      summary: Get all tasks for a project
+      operationId: listProjectTasks
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paginated list of tasks in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/users:
+    post:
+      tags: [Users]
+      summary: Create a user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags: [Users]
+      summary: List all users
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paginated list of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      operationId: getUserById
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: The user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Users]
+      summary: Update a user
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      description: Deletes the user. Tasks previously assigned to the user are unassigned (assigneeId set to null).
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tasks:
+    post:
+      tags: [Tasks]
+      summary: Create a task under a project
+      description: |
+        `status` defaults to `TODO` and `priority` defaults to the value of the
+        `task.default-priority` configuration property when not supplied.
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags: [Tasks]
+      summary: List all tasks
+      description: Optionally filter by status and/or project.
+      operationId: listTasks
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filter by task status
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+        - name: projectId
+          in: query
+          required: false
+          description: Filter by project ID
+          schema:
+            type: integer
+            format: int64
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paginated list of tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/tasks/{id}:
+    get:
+      tags: [Tasks]
+      summary: Get task by ID
+      operationId: getTaskById
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: The task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Tasks]
+      summary: Update task details or status
+      operationId: updateTask
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Tasks]
+      summary: Delete a task
+      operationId: deleteTask
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Task deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: Resource ID
+      schema:
+        type: integer
+        format: int64
+    PageParam:
+      name: page
+      in: query
+      required: false
+      description: Zero-based page index
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    SizeParam:
+      name: size
+      in: query
+      required: false
+      description: Page size (default configured via pagination.default-page-size)
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      description: Sort criteria in the form `field,(asc|desc)`. Repeatable.
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: true
+
+  responses:
+    BadRequest:
+      description: Validation failed or malformed request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Uniqueness constraint violated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    TaskStatus:
+      type: string
+      enum: [TODO, IN_PROGRESS, DONE]
+    TaskPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+
+    InfoResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Task Tracker API
+        version:
+          type: string
+          example: 1.0.0
+
+    ProjectRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Website Revamp
+        description:
+          type: string
+          maxLength: 2000
+          example: Rebuild the marketing site
+
+    ProjectResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Website Revamp
+        description:
+          type: string
+          example: Rebuild the marketing site
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-10-22T10:15:30'
+
+    UserRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Ada Lovelace
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: ada@example.com
+        role:
+          type: string
+          maxLength: 100
+          example: DEVELOPER
+          description: e.g. DEVELOPER, QA, MANAGER
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Ada Lovelace
+        email:
+          type: string
+          example: ada@example.com
+        role:
+          type: string
+          example: DEVELOPER
+
+    TaskRequest:
+      type: object
+      required: [title, projectId]
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          example: Design landing page
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        projectId:
+          type: integer
+          format: int64
+          example: 1
+        assigneeId:
+          type: integer
+          format: int64
+          nullable: true
+          example: 1
+        dueDate:
+          type: string
+          format: date
+          example: '2026-11-01'
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          example: Design landing page
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        projectId:
+          type: integer
+          format: int64
+          example: 1
+        assigneeId:
+          type: integer
+          format: int64
+          nullable: true
+          example: 1
+        dueDate:
+          type: string
+          format: date
+          example: '2026-11-01'
+
+    ProjectPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMetadata'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProjectResponse'
+
+    UserPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMetadata'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserResponse'
+
+    TaskPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMetadata'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/TaskResponse'
+
+    PageMetadata:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            type: object
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          example: 42
+        totalPages:
+          type: integer
+          example: 5
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: Validation failed
+        path:
+          type: string
+          example: /api/tasks
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            title: Task title is required
+            projectId: projectId is required
